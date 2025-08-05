@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:e_commerce/src/model/product.dart';
-
-import 'home_screen.dart';
 import 'order_done_screen.dart';
 
 class OrderScreen extends StatefulWidget {
@@ -40,8 +38,12 @@ class _OrderScreenState extends State<OrderScreen> {
                     style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 15),
-                  ...widget.products.map(
-                        (product) => ListTile(
+                  ...widget.products.map((product) {
+                    final int unitPrice =
+                    product.off != null ? product.off! : product.price;
+                    final int totalPrice = unitPrice * product.quantity;
+
+                    return ListTile(
                       title: Text(
                         product.name,
                         style: const TextStyle(
@@ -52,11 +54,11 @@ class _OrderScreenState extends State<OrderScreen> {
                         style: const TextStyle(fontSize: 18),
                       ),
                       trailing: Text(
-                        '\$${product.price * product.quantity}',
+                        '\$$totalPrice',
                         style: const TextStyle(fontSize: 20),
                       ),
-                    ),
-                  ),
+                    );
+                  }),
                   const Divider(height: 30, color: Colors.black, thickness: 2),
                   Text(
                     'Total: \$${widget.total}',
