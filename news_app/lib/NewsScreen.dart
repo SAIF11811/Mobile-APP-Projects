@@ -3,8 +3,12 @@ import 'package:dio/dio.dart';
 
 class NewsScreen extends StatefulWidget {
   final String query;
+  final bool isArabic;
 
-  const NewsScreen({required this.query});
+  const NewsScreen({
+    required this.query,
+    required this.isArabic,
+  });
 
   @override
   _NewsScreenState createState() => _NewsScreenState();
@@ -28,7 +32,7 @@ class _NewsScreenState extends State<NewsScreen> {
     try {
       final response = await _dio.get(url, queryParameters: {
         'q': widget.query,
-        'language': 'ar',
+        'language': widget.isArabic ? 'ar' : 'en',
         'sortBy': 'publishedAt',
         'apiKey': _apiKey,
       });
@@ -40,13 +44,17 @@ class _NewsScreenState extends State<NewsScreen> {
         });
       } else {
         setState(() {
-          _error = 'فشل تحميل الأخبار';
+          _error = widget.isArabic
+              ? 'فشل تحميل الأخبار'
+              : 'Failed to load news';
           _isLoading = false;
         });
       }
     } catch (e) {
       setState(() {
-        _error = 'حدث خطأ: $e';
+        _error = widget.isArabic
+            ? 'حدث خطأ: $e'
+            : 'An error occurred: $e';
         _isLoading = false;
       });
     }
@@ -55,10 +63,14 @@ class _NewsScreenState extends State<NewsScreen> {
   @override
   Widget build(BuildContext context) {
     return Directionality(
-      textDirection: TextDirection.rtl,
+      textDirection: widget.isArabic ? TextDirection.rtl : TextDirection.ltr,
       child: Scaffold(
         appBar: AppBar(
-          title: Text('أخبار ${widget.query}'),
+          title: Text(
+            widget.isArabic
+                ? 'أخبار ${widget.query}'
+                : '${widget.query} News',
+          ),
           backgroundColor: Colors.teal[400],
         ),
         body: _isLoading
@@ -68,15 +80,24 @@ class _NewsScreenState extends State<NewsScreen> {
             : RefreshIndicator(
           onRefresh: fetchNews,
           child: _articles.isEmpty
-              ? Center(child: Text('لا توجد أخبار حالياً'))
+              ? Center(
+            child: Text(widget.isArabic
+                ? 'لا توجد أخبار حالياً'
+                : 'No news available'),
+          )
               : ListView.builder(
             itemCount: _articles.length,
             itemBuilder: (context, index) {
               final article = _articles[index];
               return NewsCard(
-                title: article['title'] ?? 'بدون عنوان',
-                description:
-                article['description'] ?? 'لا يوجد وصف',
+                title: article['title'] ??
+                    (widget.isArabic
+                        ? 'بدون عنوان'
+                        : 'No title'),
+                description: article['description'] ??
+                    (widget.isArabic
+                        ? 'لا يوجد وصف'
+                        : 'No description'),
                 imageUrl: article['urlToImage'] ??
                     'https://via.placeholder.com/150',
               );
@@ -145,7 +166,7 @@ class NewsCard extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.all(12.0),
             child: Directionality(
-              textDirection: TextDirection.rtl,
+              textDirection: Directionality.of(context),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
